@@ -59,4 +59,6 @@ def apply(C, lang):
     C["meta"]["insights"] = x["meta_insights"]
     C["insights"].update(x["insights"])
     C["home"].update(x["home"])
+    import photos2
+    photos2.apply(C, lang)
     return C

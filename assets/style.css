@@ -329,3 +329,4 @@ form.enq{display:grid;gap:1.2rem}
 .fig-grid li{border-color:rgba(255,255,255,.16)}
 .fig-grid b{color:var(--brass-l,#e4bc63)}.fig-grid span{color:#c5d1da}
 @media (max-width:47.99rem){.fig-grid li:nth-child(n+3){border-color:rgba(255,255,255,.16)}}
+.strip .shot{aspect-ratio:4/3;overflow:hidden}.strip .shot picture,.strip .shot img{display:block;width:100%;height:100%;object-fit:cover}
