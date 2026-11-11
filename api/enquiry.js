@@ -1,7 +1,7 @@
 // Vercel function: receives the enquiry form and emails it through Resend.
 // Environment variables (Vercel project settings):
 //   RESEND_API_KEY  required
-//   ENQUIRY_TO      optional, default msh@mccgroup.in
+//   ENQUIRY_TO      optional, default info@mccgroup.in
 //   ENQUIRY_FROM    optional, default "MCC Group Website <onboarding@resend.dev>"
 //                   (use an address on a domain verified in Resend for production)
 const THANKS = { en: '/thank-you/', hi: '/hi/thank-you/', mr: '/mr/thank-you/' };
@@ -34,7 +34,7 @@ module.exports = async (req, res) => {
 
   const payload = {
     from: process.env.ENQUIRY_FROM || 'MCC Group Website <onboarding@resend.dev>',
-    to: [process.env.ENQUIRY_TO || 'msh@mccgroup.in'],
+    to: [process.env.ENQUIRY_TO || 'info@mccgroup.in'],
     subject: 'Website enquiry: ' + name,
     text: `Name: ${name}\nPhone: ${phone}\nEmail: ${email || '-'}\nType of work: ${type}\nLanguage of page: ${lang}\n\n${message}\n`,
   };

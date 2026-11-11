@@ -14,7 +14,7 @@ ADDRESS = {
 }
 PHONE_OFFICE = {"display": "0712-4210767", "tel": "+917124210767"}
 PHONE_MOBILE = {"display": "90497 70088", "tel": "+919049770088", "wa": "919049770088"}
-EMAIL_ENQUIRY = "msh@mccgroup.in"
+EMAIL_ENQUIRY = "info@mccgroup.in"
 EMAIL_CAREERS = "info@mccgroup.in"
 MAPS_URL = "https://www.google.com/maps/search/?api=1&query=" + "908%2C+B+Wing%2C+Lokmat+Building%2C+Lokmat+Square%2C+Nagpur+440010"
 
@@ -40,9 +40,18 @@ PAGES = {
     "work": "our-work/",
     "plant": "plant-and-machinery/",
     "careers": "careers/",
-    "insights": "insights/",
+    "insights": "blog/",
     "contact": "contact/",
 }
-ARTICLES = ["peb-vs-conventional-construction", "storm-drain-planning-in-layouts", "timeline-control-and-project-cost", "canal-lining-explained"]
+ARTICLES = [
+    "anatomy-of-a-road", "canal-lining-explained", "peb-vs-conventional-construction", "timeline-control-and-project-cost",
+    "quality-checks-in-road-construction", "storm-drain-planning-in-layouts", "planning-rock-excavation-and-cuttings", "concrete-curing-basics",
+    "monsoon-planning-for-civil-sites", "bridge-construction-stages", "how-to-choose-a-civil-contractor", "equipment-planning-on-infrastructure-sites",
+]
+ARTICLE_CATS = {
+    "anatomy-of-a-road": "roads", "canal-lining-explained": "water", "peb-vs-conventional-construction": "buildings", "timeline-control-and-project-cost": "planning",
+    "quality-checks-in-road-construction": "quality", "storm-drain-planning-in-layouts": "water", "planning-rock-excavation-and-cuttings": "roads", "concrete-curing-basics": "quality",
+    "monsoon-planning-for-civil-sites": "planning", "bridge-construction-stages": "roads", "how-to-choose-a-civil-contractor": "planning", "equipment-planning-on-infrastructure-sites": "planning",
+}
 
 # Photos: slug -> (category, width, height) filled in from tools/images.json at build time

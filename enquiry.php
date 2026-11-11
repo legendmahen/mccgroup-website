@@ -1,6 +1,6 @@
 <?php
 // Enquiry handler for mccgroup.in. Sends the enquiry to the sales mailbox and redirects to the thank-you page.
-$to = 'msh@mccgroup.in';
+$to = 'info@mccgroup.in';
 $from = 'no-reply@mccgroup.in';
 $thanks = ['en' => '/thank-you/', 'hi' => '/hi/thank-you/', 'mr' => '/mr/thank-you/'];
 $contact = ['en' => '/contact/', 'hi' => '/hi/contact/', 'mr' => '/mr/contact/'];

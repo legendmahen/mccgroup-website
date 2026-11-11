@@ -6,6 +6,7 @@ Run:  python3 tools/build.py          (all languages)
 import html, importlib, json, os, re, shutil, sys
 sys.path.insert(0, os.path.dirname(__file__))
 import site_config as S
+import extras
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
@@ -110,11 +111,45 @@ def head(C, lang, key, title, desc, path_for_alt, extra_ld=(), og_type="website"
 <meta property="og:site_name" content="{S.BRAND}"><meta property="og:type" content="{og_type}"><meta property="og:title" content="{q(title)}"><meta property="og:description" content="{q(desc)}"><meta property="og:url" content="{canon}"><meta property="og:image" content="{S.DOMAIN}/assets/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="{C['locale']}">{other_locales}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest">
-<link rel="preload" href="/assets/fonts/archivo-latin-wdth.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
 {ld}
 </head>
 """
+
+
+PHONE_PATH = "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+
+
+def wa_svg(hole, cls="wa-ico", color="#fff"):
+    """WhatsApp-style chat bubble with a handset. `color` is the bubble, `hole` the handset (match the background)."""
+    return (f'<svg class="{cls}" viewBox="0 0 32 32" aria-hidden="true" focusable="false">'
+            f'<path fill="{color}" d="M16 3C8.8 3 3 8.8 3 16c0 2.3.6 4.5 1.7 6.4L3 29l6.8-1.8A12.9 12.9 0 0 0 16 29c7.2 0 13-5.8 13-13S23.2 3 16 3z"/>'
+            f'<path transform="translate(9.6 9.4) scale(.55)" fill="{hole}" stroke="{hole}" stroke-width="1" stroke-linejoin="round" d="{PHONE_PATH}"/></svg>')
+
+
+def ico_call():
+    return f'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="{PHONE_PATH}"/></svg>'
+
+
+def ico_mail():
+    return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>'
+
+
+def rich(s):
+    """Escape text and turn e-mail addresses and the two phone numbers into links."""
+    s = esc(s)
+    s = re.sub(r"([\w.+-]+@[\w-]+(?:\.[\w-]+)+)", r'<a href="mailto:\1">\1</a>', s)
+    s = s.replace(S.PHONE_OFFICE["display"], f'<a href="tel:{S.PHONE_OFFICE["tel"]}">{S.PHONE_OFFICE["display"]}</a>')
+    s = s.replace(S.PHONE_MOBILE["display"], f'<a href="tel:{S.PHONE_MOBILE["tel"]}">{S.PHONE_MOBILE["display"]}</a>')
+    return s
+
+
+def read_minutes(a):
+    words = len(a["summary"].split())
+    for kind, val in a["body"]:
+        words += len(val.split()) if isinstance(val, str) else sum(len(i.split()) for i in val)
+    return max(3, round(words / 190))
 
 
 def header(C, lang, key, path_for_alt):
@@ -127,7 +162,8 @@ def header(C, lang, key, path_for_alt):
 <a class="brand" href="{url(lang, 'home')}" aria-label="MCC Group, {esc(C['ui']['home'])}"><img src="/assets/logo.webp" width="{IMG['_logo']['w']}" height="{IMG['_logo']['h']}" alt="MCC Group"></a>
 <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">{esc(C['ui']['menu'])}</button>
 <nav class="nav" id="site-nav" aria-label="{q(C['ui']['explore'])}">{links}
-<a class="head-call" href="{url(lang, 'contact')}"{" aria-current=\"page\"" if key == "contact" else ""}>{esc(C['nav']['contact'])}</a>
+<div class="head-act"><a class="head-wa" href="{wa_link(C)}" target="_blank" rel="noopener" aria-label="{q(C['ui']['chat_wa'])}" title="{q(C['ui']['chat_wa'])}">{wa_svg('#25d366')}</a>
+<a class="btn btn-navy head-cta" href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a></div>
 <div class="lang" role="group" aria-label="{q(C['ui']['language'])}">{langs}</div></nav>
 </div></header>
 <main id="main">
@@ -139,10 +175,12 @@ def footer(C, lang):
     pages = "".join(f'<li><a href="{url(lang, k)}">{esc(C["nav"][k])}</a></li>' for k in nav_keys)
     cos = "".join(f"<li>{esc(n)}</li>" for n in S.CIVIL_COMPANIES + [S.CRUSHER_COMPANY])
     a = S.ADDRESS
+    first = re.split(r"(?<=[.।])\s", C["home"]["who"])[0]
     return f"""</main>
 <footer class="site-foot"><div class="wrap">
 <div class="foot-grid">
-<div class="foot-brand"><img src="/assets/logo.webp" width="{IMG['_logo']['w']}" height="{IMG['_logo']['h']}" alt="MCC Group" loading="lazy"><p>{esc(re.split(r'(?<=[.।])\s', C['home']['who'])[0])}</p></div>
+<div class="foot-brand"><img src="/assets/logo.webp" width="{IMG['_logo']['w']}" height="{IMG['_logo']['h']}" alt="MCC Group" loading="lazy"><p>{esc(first)}</p>
+<a class="foot-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg('#0a1a28', color='#25d366')} {esc(C['ui']['chat_wa'])}</a></div>
 <nav aria-label="{q(C['ui']['explore'])}"><h2>{esc(C['ui']['explore'])}</h2><ul>{pages}</ul></nav>
 <div><h2>{esc(C['ui']['group_companies'])}</h2><ul>{cos}</ul></div>
 <div><h2>{esc(C['ui']['contact'])}</h2>
@@ -152,7 +190,8 @@ def footer(C, lang):
 </div>
 <div class="foot-base">&copy; {S.FOUNDED}&ndash;2026 {S.BRAND}. {esc(C['ui']['rights'])}</div>
 </div></footer>
-<div class="actbar"><a href="tel:{S.PHONE_OFFICE['tel']}">{esc(C['ui']['call'])}</a><a href="{wa_link(C)}" rel="noopener" target="_blank">{esc(C['ui']['whatsapp'])}</a><a href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a></div>
+<a class="wa-float" href="{wa_link(C)}" target="_blank" rel="noopener" aria-label="{q(C['ui']['chat_wa'])}" title="{q(C['ui']['chat_wa'])}">{wa_svg('#25d366')}</a>
+<div class="actbar"><a href="tel:{S.PHONE_OFFICE['tel']}">{ico_call()}{esc(C['ui']['call'])}</a><a class="a-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg('#0f7d43')}{esc(C['ui']['wa_short'])}</a><a href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a></div>
 <script src="/assets/app.js" defer></script>
 </body>
 </html>
@@ -164,24 +203,21 @@ def page_head(C, lang, h1, lede, trail):
         f'<li><a href="{u}">{esc(n)}</a></li>' if u else f'<li aria-current="page">{esc(n)}</li>' for n, u in trail)
     return f"""<div class="page-head"><div class="wrap">
 <nav class="crumbs" aria-label="{q(C['ui']['breadcrumb'])}"><ol>{crumbs}</ol></nav>
-<h1>{esc(h1)}</h1>{f'<p>{esc(lede)}</p>' if lede else ''}</div></div>
+<h1>{esc(h1)}</h1>{f'<p class="rich">{rich(lede)}</p>' if lede else ''}</div></div>
 """
 
 
 def faq_html(C, faq):
-    items = "".join(f"<details><summary>{esc(a)}</summary><p>{esc(b)}</p></details>" for a, b in faq)
+    items = "".join(f'<details><summary>{esc(a)}</summary><p class="rich">{rich(b)}</p></details>' for a, b in faq)
     return f'<div class="faq">{items}</div>'
 
 
 def cta(C, lang, title=None, text=None):
     return f"""<section class="cta"><div class="wrap cta-in">
-<div><h2>{esc(title or C['home']['cta_title'])}</h2><p>{esc(text or C['home']['cta_text'])}</p></div>
-<div class="btns"><a class="btn btn-main" href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a><a class="btn btn-line" href="tel:{S.PHONE_OFFICE['tel']}">{esc(C['ui']['call'])} {S.PHONE_OFFICE['display']}</a></div>
+<div><h2>{esc(title or C['home']['cta_title'])}</h2><p class="rich">{rich(text or C['home']['cta_text'])}</p></div>
+<div class="btns"><a class="btn btn-gold" href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a><a class="btn btn-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg('#0f7d43')}{esc(C['ui']['chat_wa'])}</a></div>
 </div></section>
 """
-
-
-LB = None
 
 
 def lightbox(C):
@@ -190,14 +226,15 @@ def lightbox(C):
 """
 
 
-def shot(C, slug, sizes, lightboxed=True):
+def shot(C, slug, sizes, lightboxed=True, cls=""):
     alt = C["photos"][slug]
     m = IMG[slug]
     full = f"/assets/img/{slug}-{max(m['sizes'])}.webp"
     pic = picture(slug, alt, sizes)
+    c = f' class="shot {cls}"'.replace(" ", " ", 1) if cls else ' class="shot"'
     if lightboxed:
-        return f'<figure class="shot"><button type="button" data-full="{full}" data-alt="{q(alt)}" aria-label="{q(alt)}">{pic}</button></figure>'
-    return f'<figure class="shot">{pic}</figure>'
+        return f'<figure{c}><button type="button" data-full="{full}" data-alt="{q(alt)}" aria-label="{q(alt)}">{pic}</button></figure>'
+    return f"<figure{c}>{pic}</figure>"
 
 
 def write(lang, rel, content):
@@ -206,70 +243,73 @@ def write(lang, rel, content):
     open(os.path.join(folder, "index.html"), "w", encoding="utf-8").write(content)
 
 
-# ---------- pages ----------
 def alt_fn(key=None, article=None):
     return lambda l: url(l, key, article)
 
 
+def article_card(C, lang, slug, featured=False):
+    a = ARTS[lang][slug]
+    cat = C["ui"]["cats"][S.ARTICLE_CATS[slug]]
+    meta = f'{read_minutes(a)} {esc(C["ui"]["min_read"])}'
+    tag = "h2" if featured else "h3"
+    if featured:
+        return (f'<a class="featured" href="{url(lang, article=slug)}"><div><span class="cat">{esc(cat)} &middot; {esc(C["ui"]["latest"])}</span><{tag}>{esc(a["title"])}</{tag}></div>'
+                f'<div><p>{esc(a["desc"])}</p><span class="meta">{esc(C["ui"]["by"])} Mahendra Heda &middot; {meta}</span></div></a>')
+    return (f'<a class="card" href="{url(lang, article=slug)}"><span class="cat">{esc(cat)}</span><{tag}>{esc(a["title"])}</{tag}>'
+            f'<p>{esc(a["desc"])}</p><span class="meta">{esc(C["ui"]["by"])} Mahendra Heda &middot; {meta}</span></a>')
+
+
+# ---------- pages ----------
 def page_home(C, lang):
     H = C["home"]
     alt = alt_fn("home")
-    out = head(C, lang, "home", C["meta"]["home"][0], C["meta"]["home"][1], alt)
-    out += header(C, lang, "home", alt)
-    facts = "".join(f"<li><span>{esc(a)}</span><b>{esc(b)}</b></li>" for a, b in H["facts"])
-    out += f"""<section class="hero"><div class="hero-grid">
-<div class="hero-copy"><h1>{esc(H['h1'])}</h1><p class="hero-sub">{esc(H['sub'])}</p>
-<div class="btns"><a class="btn btn-main" href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a><a class="btn btn-line" href="{url(lang, 'work')}">{esc(C['ui']['see_work'])}</a></div>
-<ul class="hero-facts">{facts}</ul></div>
-<figure class="hero-fig">{picture('rock-cut-1', H['hero_alt'], '(min-width:62rem) 40vw, 100vw', eager=True)}<figcaption>{esc(H['hero_cap'])}</figcaption></figure>
-</div></section>
-<section><div class="wrap cols2"><div><h2>{esc(H['who_title'])}</h2></div><div><p class="lede">{esc(H['who'])}</p><p><a class="link" href="{url(lang, 'about')}">{esc(C['nav']['about'])}</a></p></div></div></section>
+    out = head(C, lang, "home", C["meta"]["home"][0], C["meta"]["home"][1], alt) + header(C, lang, "home", alt)
+    figs = "".join(f"<li><b>{esc(a)}</b><span>{esc(b)}</span></li>" for a, b in H["figures"])
+    out += f"""<section class="hero"><div class="hero-bg">{picture('canal-lining-1', C['photos']['canal-lining-1'], '100vw', eager=True)}</div>
+<div class="wrap hero-in"><h1>{esc(H['h1'])}</h1><p class="hero-sub">{esc(H['sub'])}</p>
+<div class="btns"><a class="btn btn-gold" href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a><a class="btn btn-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg('#0f7d43')}{esc(C['ui']['chat_wa'])}</a><a class="btn btn-line" href="{url(lang, 'work')}">{esc(C['ui']['see_work'])}</a></div></div></section>
+<section class="figures"><div class="wrap"><ul class="fig-grid" aria-label="{q(C['ui']['figures'])}">{figs}</ul></div></section>
+<section><div class="wrap split"><div><div class="mark"></div><h2>{esc(H['who_title'])}</h2><p class="lede">{esc(H['who'])}</p><p><a class="tlink" href="{url(lang, 'about')}">{esc(C['nav']['about'])}</a></p></div>
+<div class="split-img">{picture('rock-cut-1', C['photos']['rock-cut-1'], '(min-width:56rem) 40vw, 100vw')}</div></div></section>
 <section class="tint"><div class="wrap"><div class="sec-head"><h2>{esc(H['build_title'])}</h2><p>{esc(H['build_intro'])}</p></div>
-"""
-    for g in C["groups"]:
-        items = "".join(f"<li>{esc(i)}</li>" for i in g["items"])
-        img = f'<div class="cap-img">{picture(g["img"], C["photos"][g["img"]], "(min-width:56rem) 28vw, 100vw")}</div>' if g["img"] else ""
-        out += f'<div class="cap{"" if g["img"] else " no-img"}"><h3>{esc(g["name"])}</h3><div><p>{esc(g["text"])}</p><ul>{items}</ul></div>{img}</div>\n'
-    out += f'<p style="margin-top:1.5rem"><a class="link" href="{url(lang, "capabilities")}">{esc(C["ui"]["capabilities_link"])}</a></p></div></section>\n'
+<div class="tiles">"""
+    for g in C["groups"][:3]:
+        out += f'<a class="tile" href="{url(lang, "capabilities")}#{g["id"]}">{picture(g["img"], C["photos"][g["img"]], "(min-width:48rem) 33vw, 100vw")}<div class="tile-t"><h3>{esc(g["name"])}</h3><p>{esc(g["text"])}</p></div></a>'
+    out += '</div><div class="more-list">'
+    for g in C["groups"][3:]:
+        out += f'<div><h3>{esc(g["name"])}</h3><p>{esc(g["text"])}</p></div>'
+    out += f'</div><p style="margin-top:2rem"><a class="tlink" href="{url(lang, "capabilities")}">{esc(C["ui"]["capabilities_link"])}</a></p></div></section>'
     out += f"""<section class="dark"><div class="wrap"><div class="sec-head"><h2>{esc(H['how_title'])}</h2></div>
 <ul class="principles">{''.join(f'<li><h3>{esc(a)}</h3><p>{esc(b)}</p></li>' for a, b in H['how'])}</ul></div></section>
 <section><div class="wrap"><div class="sec-head"><h2>{esc(H['work_title'])}</h2><p>{esc(H['work_intro'])}</p></div>
-<div class="strip">{''.join(shot(C, s, '(min-width:48rem) 33vw, 100vw', False) for s in ['road-1', 'canal-lining-1', 'rock-excavation-4'])}</div>
-<p style="margin-top:1.5rem"><a class="link" href="{url(lang, 'work')}">{esc(C['ui']['view_work'])}</a></p></div></section>
-<section class="tint"><div class="wrap cols2"><div><h2>{esc(H['group_title'])}</h2><p>{esc(H['group_intro'])}</p></div>
-<ul class="cos" style="grid-template-columns:1fr">{''.join(f'<li>{esc(n)}<span>{esc(C["companies"]["civil_label"])}</span></li>' for n in S.CIVIL_COMPANIES)}<li>{esc(S.CRUSHER_COMPANY)}<span>{esc(C['companies']['crusher_label'])}</span></li></ul></div></section>
+<div class="mosaic">{shot(C, 'road-1', '(min-width:48rem) 50vw, 100vw', False, 'm1')}{shot(C, 'rock-excavation-4', '(min-width:48rem) 50vw, 100vw', False)}{shot(C, 'paving-1', '(min-width:48rem) 50vw, 100vw', False)}</div>
+<p style="margin-top:2rem"><a class="tlink" href="{url(lang, 'work')}">{esc(C['ui']['view_work'])}</a></p></div></section>
+<section class="tint"><div class="wrap cols2"><div><div class="mark"></div><h2>{esc(H['group_title'])}</h2><p>{esc(H['group_intro'])}</p></div>
+<ul class="cos">{''.join(f'<li>{esc(n)}<span>{esc(C["companies"]["civil_label"])}</span></li>' for n in S.CIVIL_COMPANIES)}<li>{esc(S.CRUSHER_COMPANY)}<span>{esc(C['companies']['crusher_label'])}</span></li></ul></div></section>
 <section><div class="wrap"><div class="sec-head"><h2>{esc(H['people_title'])}</h2></div>
 <div class="leaders">{''.join(f'<div class="leader"><h3>{esc(l["name"])}</h3><p class="role">{esc(l["role"])}</p><p>{esc(l["bio"])}</p></div>' for l in C['leaders'])}</div></div></section>
-<section class="tint"><div class="wrap"><div class="sec-head"><h2>{esc(H['insights_title'])}</h2><p>{esc(H['insights_intro'])}</p></div>{posts_list(C, lang, 'h3')}
-<p style="margin-top:1.5rem"><a class="link" href="{url(lang, 'insights')}">{esc(C['ui']['all_articles'])}</a></p></div></section>
+<section class="tint"><div class="wrap"><div class="sec-head"><h2>{esc(H['insights_title'])}</h2><p>{esc(H['insights_intro'])}</p></div>
+<div class="cards">{''.join(article_card(C, lang, s) for s in S.ARTICLES[:3])}</div>
+<p style="margin-top:2rem"><a class="tlink" href="{url(lang, 'insights')}">{esc(C['ui']['all_posts'])}</a></p></div></section>
+<section class="join"><div class="wrap join-in"><div><h2>{esc(H['join_title'])}</h2><p>{esc(H['join_text'])}</p></div><div class="btns"><a class="btn btn-navy" href="{url(lang, 'careers')}">{esc(H['join_link'])}</a></div></div></section>
 {cta(C, lang)}"""
-    out += footer(C, lang)
-    write(lang, "", out)
-
-
-def posts_list(C, lang, tag="h2"):
-    A = ARTS[lang]
-    rows = ""
-    for slug in S.ARTICLES:
-        a = A[slug]
-        rows += f'<li class="post"><{tag}><a href="{url(lang, article=slug)}">{esc(a["title"])}</a></{tag}><p>{esc(a["desc"])}</p><span class="meta">{esc(C["ui"]["by"])} Mahendra Heda</span></li>'
-    return f'<ul class="posts">{rows}</ul>'
+    write(lang, "", out + footer(C, lang))
 
 
 def page_about(C, lang):
     A = C["about"]
     alt = alt_fn("about")
-    trail = [(C["nav"]["about"], None)]
     ld = [crumb_node(C, lang, [(C["nav"]["about"], url(lang, "about"))]),
           {"@type": "AboutPage", "url": url(lang, "about", absolute=True), "name": C["meta"]["about"][0], "about": {"@id": S.DOMAIN + "/#org"}, "inLanguage": S.HREFLANG[lang]}]
-    out = head(C, lang, "about", *C["meta"]["about"], alt, ld) + header(C, lang, "about", alt) + page_head(C, lang, A["h1"], A["lede"], trail)
-    out += f"""<section><div class="wrap cols2"><div><h2>{esc(A['stand_title'])}</h2></div><div>{''.join(f'<p class="lede">{esc(p)}</p>' for p in A['stand'])}</div></div></section>
-<section class="tint"><div class="wrap cols2"><div><h2>{esc(A['glance_title'])}</h2></div>
+    out = head(C, lang, "about", *C["meta"]["about"], alt, ld) + header(C, lang, "about", alt) + page_head(C, lang, A["h1"], A["lede"], [(C["nav"]["about"], None)])
+    out += f"""<section><div class="wrap split"><div><div class="mark"></div><h2>{esc(A['stand_title'])}</h2>{''.join(f'<p class="lede">{esc(p)}</p>' for p in A['stand'])}</div>
+<div class="split-img">{picture('rock-cut-2', C['photos']['rock-cut-2'], '(min-width:56rem) 40vw, 100vw')}</div></div></section>
+<section class="tint"><div class="wrap cols2"><div><div class="mark"></div><h2>{esc(A['glance_title'])}</h2></div>
 <dl class="glance">{''.join(f'<div><dt>{esc(a)}</dt><dd>{esc(b)}</dd></div>' for a, b in A['glance'])}</dl></div></section>
 <section><div class="wrap"><div class="sec-head"><h2>{esc(C['home']['people_title'])}</h2></div>
 <div class="leaders">{''.join(f'<div class="leader"><h3>{esc(l["name"])}</h3><p class="role">{esc(l["role"])}</p><p>{esc(l["bio"])}</p></div>' for l in C['leaders'])}</div></div></section>
-<section class="tint"><div class="wrap cols2"><div><h2>{esc(C['home']['group_title'])}</h2><p>{esc(C['home']['group_intro'])}</p></div>
-<ul class="cos" style="grid-template-columns:1fr">{''.join(f'<li>{esc(n)}<span>{esc(C["companies"]["civil_label"])}</span></li>' for n in S.CIVIL_COMPANIES)}<li>{esc(S.CRUSHER_COMPANY)}<span>{esc(C['companies']['crusher_label'])}</span></li></ul></div></section>
+<section class="tint"><div class="wrap cols2"><div><div class="mark"></div><h2>{esc(C['home']['group_title'])}</h2><p>{esc(C['home']['group_intro'])}</p></div>
+<ul class="cos">{''.join(f'<li>{esc(n)}<span>{esc(C["companies"]["civil_label"])}</span></li>' for n in S.CIVIL_COMPANIES)}<li>{esc(S.CRUSHER_COMPANY)}<span>{esc(C['companies']['crusher_label'])}</span></li></ul></div></section>
 {cta(C, lang, A['cta_title'], A['cta_text'])}"""
     write(lang, S.PAGES["about"], out + footer(C, lang))
 
@@ -284,9 +324,9 @@ def page_capabilities(C, lang):
         items = "".join(f"<li>{esc(i)}</li>" for i in g["items"])
         extra = ""
         if g["id"] == "steel":
-            extra = f'<p><a class="link" href="{url(lang, article="peb-vs-conventional-construction")}">{esc(K["steel_link"])}</a></p>'
+            extra = f'<p><a class="tlink" href="{url(lang, article="peb-vs-conventional-construction")}">{esc(K["steel_link"])}</a></p>'
         if g["id"] == "water":
-            extra = f'<p><a class="link" href="{url(lang, article="storm-drain-planning-in-layouts")}">{esc(K["water_link"])}</a></p>'
+            extra = f'<p><a class="tlink" href="{url(lang, article="storm-drain-planning-in-layouts")}">{esc(K["water_link"])}</a></p>'
         img = f'<div class="cap-img">{picture(g["img"], C["photos"][g["img"]], "(min-width:56rem) 28vw, 100vw")}</div>' if g["img"] else ""
         out += f'<div class="cap{"" if g["img"] else " no-img"}" id="{g["id"]}"><h2>{esc(g["name"])}</h2><div><p>{esc(g["long"])}</p>{extra}<ul>{items}</ul></div>{img}</div>\n'
     out += f'</div></section><section class="tint"><div class="wrap"><div class="sec-head"><h2>{esc(C["ui"]["faq_title"])}</h2></div>{faq_html(C, K["faq"])}</div></section>'
@@ -323,8 +363,8 @@ def page_careers(C, lang):
     out = head(C, lang, "careers", *C["meta"]["careers"], alt, [crumb_node(C, lang, [(C["nav"]["careers"], url(lang, "careers"))])]) + header(C, lang, "careers", alt) + page_head(C, lang, R["h1"], R["lede"], [(C["nav"]["careers"], None)])
     mail = f"mailto:{S.EMAIL_CAREERS}?subject={R['subject'].replace(' ', '%20')}"
     out += f"""<section><div class="wrap"><div class="sec-head"><h2>{esc(R['why_title'])}</h2></div>
-<ul class="principles" style="color:var(--ink)">{''.join(f'<li style="border-color:var(--ink)"><h3 style="color:var(--ink);font-size:1.6rem">{esc(a)}</h3><p style="color:var(--steel)">{esc(b)}</p></li>' for a, b in R['why'])}</ul></div></section>
-<section class="tint"><div class="wrap cols2"><div><h2>{esc(R['status_title'])}</h2></div><div><p class="lede">{esc(R['status'])}</p><p><a class="btn btn-dark" href="{mail}">{esc(R['apply'])}</a></p></div></div></section>"""
+<ul class="principles light-principles">{''.join(f'<li><h3>{esc(a)}</h3><p>{esc(b)}</p></li>' for a, b in R['why'])}</ul></div></section>
+<section class="tint"><div class="wrap cols2"><div><div class="mark"></div><h2>{esc(R['status_title'])}</h2></div><div><p class="lede rich">{rich(R['status'])}</p><p><a class="btn btn-navy" href="{mail}">{ico_mail()}{esc(R['apply'])}</a></p></div></div></section>"""
     write(lang, S.PAGES["careers"], out + footer(C, lang))
 
 
@@ -332,9 +372,12 @@ def page_insights(C, lang):
     I = C["insights"]
     alt = alt_fn("insights")
     items = [{"@type": "ListItem", "position": i, "url": url(lang, article=s, absolute=True), "name": ARTS[lang][s]["title"]} for i, s in enumerate(S.ARTICLES, 1)]
-    ld = [crumb_node(C, lang, [(C["nav"]["insights"], url(lang, "insights"))]), {"@type": "CollectionPage", "name": C["meta"]["insights"][0], "inLanguage": S.HREFLANG[lang]}, {"@type": "ItemList", "itemListElement": items}]
+    ld = [crumb_node(C, lang, [(C["nav"]["insights"], url(lang, "insights"))]),
+          {"@type": "Blog", "name": C["meta"]["insights"][0], "url": url(lang, "insights", absolute=True), "inLanguage": S.HREFLANG[lang], "publisher": {"@id": S.DOMAIN + "/#org"}},
+          {"@type": "ItemList", "itemListElement": items}]
     out = head(C, lang, "insights", *C["meta"]["insights"], alt, ld) + header(C, lang, "insights", alt) + page_head(C, lang, I["h1"], I["lede"], [(C["nav"]["insights"], None)])
-    out += f'<section><div class="wrap">{posts_list(C, lang)}</div></section>' + cta(C, lang)
+    first, rest = S.ARTICLES[0], S.ARTICLES[1:]
+    out += f'<section><div class="wrap">{article_card(C, lang, first, True)}<div class="cards">{"".join(article_card(C, lang, s) for s in rest)}</div></div></section>' + cta(C, lang)
     write(lang, S.PAGES["insights"], out + footer(C, lang))
 
 
@@ -353,11 +396,13 @@ def render_blocks(blocks):
 
 
 def page_article(C, lang, slug):
+    from urllib.parse import quote
     a = ARTS[lang][slug]
     alt = alt_fn(article=slug)
     u = url(lang, article=slug, absolute=True)
+    cat = S.ARTICLE_CATS[slug]
     ld = [crumb_node(C, lang, [(C["nav"]["insights"], url(lang, "insights")), (a["title"], url(lang, article=slug))]),
-          {"@type": "Article", "@id": u + "#article", "headline": a["title"], "description": a["desc"], "inLanguage": S.HREFLANG[lang],
+          {"@type": "Article", "@id": u + "#article", "headline": a["title"], "description": a["desc"], "inLanguage": S.HREFLANG[lang], "articleSection": C["ui"]["cats"][cat],
            "datePublished": S.PUBLISHED, "dateModified": S.PUBLISHED, "mainEntityOfPage": u, "image": S.DOMAIN + "/assets/og-image.jpg",
            "author": {"@type": "Person", "name": "Mahendra Heda", "jobTitle": "Executive Director", "worksFor": {"@id": S.DOMAIN + "/#org"}},
            "publisher": {"@id": S.DOMAIN + "/#org"}},
@@ -365,13 +410,17 @@ def page_article(C, lang, slug):
     out = head(C, lang, "insights", a["title"] + " | MCC Group", a["desc"], alt, ld, og_type="article") + header(C, lang, "insights", alt)
     out += page_head(C, lang, a["title"], None, [(C["nav"]["insights"], url(lang, "insights")), (a["title"], None)])
     key = "".join(f"<li>{esc(k)}</li>" for k in a["key"])
+    related = [s for s in S.ARTICLES if s != slug and S.ARTICLE_CATS[s] == cat][:3]
+    related += [s for s in S.ARTICLES if s != slug and s not in related][: 3 - len(related)]
+    share = f"https://wa.me/?text={quote(a['title'] + ' ' + u)}"
     out += f"""<article class="article"><div class="wrap read">
-<p class="meta">{esc(C['ui']['by'])} Mahendra Heda, {esc(C['leaders'][1]['role'])} &middot; {esc(C['ui']['published'])} <time datetime="{S.PUBLISHED}">{S.PUBLISHED}</time></p>
+<p class="meta">{esc(C['ui']['cats'][cat])} &middot; {esc(C['ui']['by'])} Mahendra Heda, {esc(C['leaders'][1]['role'])} &middot; <time datetime="{S.PUBLISHED}">{S.PUBLISHED}</time> &middot; {read_minutes(a)} {esc(C['ui']['min_read'])}</p>
 <div class="insight-box"><h2>{esc(C['ui']['in_short'])}</h2><p>{esc(a['summary'])}</p><ul>{key}</ul></div>
 {render_blocks(a['body'])}
 <h2>{esc(C['ui']['faq_title'])}</h2>{faq_html(C, a['faq'])}
-<p style="margin-top:2.5rem"><a class="link" href="{url(lang, 'insights')}">{esc(C['ui']['all_articles'])}</a></p>
-</div></article>"""
+<div class="share on-light"><a class="btn btn-wa" href="{share}" target="_blank" rel="noopener">{wa_svg('#0f7d43')}{esc(C['ui']['share_wa'])}</a><a class="btn btn-line" href="{url(lang, 'insights')}">{esc(C['ui']['all_posts'])}</a></div>
+</div></article>
+<section class="tint"><div class="wrap"><div class="sec-head"><h2>{esc(C['ui']['related'])}</h2></div><div class="cards">{''.join(article_card(C, lang, s) for s in related)}</div></div></section>"""
     out += cta(C, lang)
     write(lang, S.PAGES["insights"] + slug + "/", out + footer(C, lang))
 
@@ -385,7 +434,7 @@ def page_contact(C, lang):
     opts = "".join(f"<option>{esc(t)}</option>" for t in F["types"])
     a = S.ADDRESS
     out += f"""<section><div class="wrap contact-grid">
-<div><h2>{esc(F['title'])}</h2><div class="alert"><p style="margin:0">{esc(F['error'])}</p></div>
+<div><h2>{esc(F['title'])}</h2><div class="alert"><p class="rich" style="margin:0">{rich(F['error'])}</p></div>
 <form class="enq" method="post" action="/enquiry.php">
 <input type="hidden" name="lang" value="{lang}">
 <div class="hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
@@ -394,15 +443,15 @@ def page_contact(C, lang):
 <div class="f"><label for="e">{esc(F['email'])}</label><input id="e" name="email" type="email" maxlength="120" autocomplete="email"></div>
 <div class="f"><label for="t">{esc(F['type'])}</label><select id="t" name="type">{opts}</select></div>
 <div class="f"><label for="m">{esc(F['message'])}</label><textarea id="m" name="message" required maxlength="2000"></textarea><small>{esc(F['message_hint'])}</small></div>
-<div><button class="btn btn-dark" type="submit">{esc(F['send'])}</button></div>
+<div><button class="btn btn-navy" type="submit">{esc(F['send'])}</button></div>
 <p class="note">{esc(F['note'])}</p></form></div>
-<div><h2>{esc(T['details_title'])}</h2><dl class="details-list">
+<div><div class="quick on-light"><a class="btn btn-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg('#0f7d43')}{esc(C['ui']['wa_short'])}</a><a class="btn btn-navy" href="tel:{S.PHONE_OFFICE['tel']}">{ico_call()}{esc(C['ui']['call'])}</a><a class="btn btn-line" href="mailto:{S.EMAIL_ENQUIRY}">{ico_mail()}{esc(C['ui']['email_us'])}</a></div>
+<h2>{esc(T['details_title'])}</h2><dl class="details-list">
 <div><dt>{esc(C['ui']['phone_label'])}</dt><dd><a href="tel:{S.PHONE_OFFICE['tel']}">{S.PHONE_OFFICE['display']}</a></dd></div>
-<div><dt>{esc(C['ui']['mobile_label'])}</dt><dd><a href="tel:{S.PHONE_MOBILE['tel']}">{S.PHONE_MOBILE['display']}</a> &middot; <a href="{wa_link(C)}" rel="noopener" target="_blank">{esc(C['ui']['whatsapp'])}</a></dd></div>
+<div><dt>{esc(C['ui']['mobile_label'])}</dt><dd><a href="tel:{S.PHONE_MOBILE['tel']}">{S.PHONE_MOBILE['display']}</a> &middot; <a href="{wa_link(C)}" rel="noopener" target="_blank">{esc(C['ui']['chat_wa'])}</a></dd></div>
 <div><dt>{esc(C['ui']['email_label'])}</dt><dd><a href="mailto:{S.EMAIL_ENQUIRY}">{S.EMAIL_ENQUIRY}</a></dd></div>
 <div><dt>{esc(C['ui']['address_label'])}</dt><dd>{esc(a['street'])}, {esc(a['city'])} {esc(a['postal'])}<br><a href="{S.MAPS_URL}" rel="noopener" target="_blank">{esc(C['ui']['open_maps'])}</a></dd></div>
 <div><dt>{esc(C['ui']['hours_label'])}</dt><dd>{esc(C['ui']['hours'])}</dd></div>
-<div><dt>{esc(C['ui']['careers_label'])}</dt><dd><a href="mailto:{S.EMAIL_CAREERS}">{S.EMAIL_CAREERS}</a></dd></div>
 </dl></div></div></section>"""
     write(lang, S.PAGES["contact"], out + footer(C, lang))
 
@@ -411,7 +460,7 @@ def page_thanks(C, lang):
     T = C["thanks"]
     alt = lambda l: "/" + S.LANG_PREFIX[l] + "thank-you/"
     out = head(C, lang, "contact", T["title"], T["text"], alt, noindex=True) + header(C, lang, "contact", alt)
-    out += f'<section class="center-page"><div class="wrap"><h1 style="font-size:clamp(2rem,5vw,3.6rem)">{esc(T["title"])}</h1><p class="lede">{esc(T["text"])}</p><a class="btn btn-dark" href="{url(lang, "home")}">{esc(T["back"])}</a></div></section>'
+    out += f'<section class="center-page"><div class="wrap"><h1 style="font-size:clamp(2rem,5vw,3.4rem)">{esc(T["title"])}</h1><p class="lede rich">{rich(T["text"])}</p><a class="btn btn-navy" href="{url(lang, "home")}">{esc(T["back"])}</a></div></section>'
     write(lang, "thank-you/", out + footer(C, lang))
 
 
@@ -419,7 +468,7 @@ def page_404(C, lang):
     N = C["notfound"]
     alt = lambda l: url(l, "home")
     out = head(C, lang, "home", N["title"], N["text"], alt, noindex=True) + header(C, lang, "home", alt)
-    out += f'<section class="center-page"><div class="wrap"><h1 style="font-size:clamp(2rem,5vw,3.6rem)">{esc(N["title"])}</h1><p class="lede">{esc(N["text"])}</p><div class="btns"><a class="btn btn-dark" href="{url(lang, "home")}">{esc(N["home"])}</a><a class="btn btn-line" href="{url(lang, "capabilities")}">{esc(C["ui"]["see_capabilities"])}</a></div></div></section>'
+    out += f'<section class="center-page"><div class="wrap"><h1 style="font-size:clamp(2rem,5vw,3.4rem)">{esc(N["title"])}</h1><p class="lede">{esc(N["text"])}</p><div class="btns on-light"><a class="btn btn-navy" href="{url(lang, "home")}">{esc(N["home"])}</a><a class="btn btn-line" href="{url(lang, "capabilities")}">{esc(C["ui"]["see_capabilities"])}</a></div></div></section>'
     if lang == "en":
         open(os.path.join(DIST, "404.html"), "w", encoding="utf-8").write(out + footer(C, lang))
 
@@ -491,7 +540,7 @@ Header set Referrer-Policy "strict-origin-when-cross-origin"
 
 PHP = r"""<?php
 // Enquiry handler for mccgroup.in. Sends the enquiry to the sales mailbox and redirects to the thank-you page.
-$to = 'msh@mccgroup.in';
+$to = 'info@mccgroup.in';
 $from = 'no-reply@mccgroup.in';
 $thanks = ['en' => '/thank-you/', 'hi' => '/hi/thank-you/', 'mr' => '/mr/thank-you/'];
 $contact = ['en' => '/contact/', 'hi' => '/hi/contact/', 'mr' => '/mr/contact/'];
@@ -533,7 +582,13 @@ ARTS = {}
 def main():
     for l in S.LANGS:
         LC[l] = importlib.import_module(f"content_{l}").C if os.path.exists(os.path.join(ROOT, "tools", f"content_{l}.py")) else None
-        ARTS[l] = importlib.import_module(f"articles_{l}").A if os.path.exists(os.path.join(ROOT, "tools", f"articles_{l}.py")) else None
+        if os.path.exists(os.path.join(ROOT, "tools", f"articles_{l}.py")):
+            ARTS[l] = dict(importlib.import_module(f"articles_{l}").A)
+            ARTS[l].update(importlib.import_module(f"articles2_{l}").A2)
+        else:
+            ARTS[l] = None
+        if LC[l] is not None:
+            extras.apply(LC[l], l)
     for l in LANGS:
         if LC[l] is None or ARTS[l] is None:
             sys.exit(f"missing content for {l}")

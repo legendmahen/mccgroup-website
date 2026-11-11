@@ -8,7 +8,7 @@
 - Group companies: Mahendra Construction, Mahendra Irricon Pvt Ltd, Mahagauri Buildcon, Mahagauri Infra, Mahagauri Construction (civil construction); Mahagauri Stone Crusher Pvt Ltd (stone crushing)
 - Address: 908, B Wing, Lokmat Building, Lokmat Square, Nagpur 440010
 - Telephone: 0712-4210767; mobile and WhatsApp 90497 70088
-- Email: msh@mccgroup.in
+- Email: info@mccgroup.in
 - Office hours: Monday to Saturday, 10 AM to 6 PM IST
 
 ## Pages
@@ -17,14 +17,22 @@
 - [Our work](https://mccgroup.in/our-work/): Photographs from MCC Group sites: road works, rock excavation and cutting, canal lining, concrete works, water-control structures and a market complex.
 - [Plant and machinery](https://mccgroup.in/plant-and-machinery/): Excavators, road rollers, a concrete batching plant, concrete mixers, tipper trucks and water tankers used on MCC Group sites.
 - [Careers](https://mccgroup.in/careers/): MCC Group invites civil construction professionals to grow with the company. No positions are open now. Send your CV to info@mccgroup.in.
-- [Insights](https://mccgroup.in/insights/): Plain-language articles on PEB and conventional construction, storm drain planning, timelines and project cost, and canal lining. By Mahendra Heda.
+- [Blog](https://mccgroup.in/blog/): Plain-language articles on roads, bridges, canals, concrete, PEB structures, site planning and choosing a contractor. By Mahendra Heda, MCC Group.
 - [Contact](https://mccgroup.in/contact/): Call 0712-4210767, message 90497 70088 on WhatsApp or send an enquiry. Head office: 908, B Wing, Lokmat Building, Lokmat Square, Nagpur 440010.
 
 ## Articles (by Mahendra Heda; English, Hindi and Marathi)
-- [PEB or conventional construction: how to choose](https://mccgroup.in/insights/peb-vs-conventional-construction/): A plain comparison of pre-engineered steel buildings and conventional RCC construction: speed, span, flexibility, and when each one fits.
-- [Storm drain planning in layouts: what to get right](https://mccgroup.in/insights/storm-drain-planning-in-layouts/): Why storm drains matter in residential and commercial layouts, and the points to settle during planning so water leaves the site safely.
-- [Why timeline control decides project cost](https://mccgroup.in/insights/timeline-control-and-project-cost/): How delays raise the cost of a civil project, and how planning manpower and machinery together keeps a project on schedule and viable.
-- [Canal lining explained](https://mccgroup.in/insights/canal-lining-explained/): What canal lining is, why canals are lined, how the work is done, and what makes a lining last.
+- [The anatomy of a road: what lies beneath the surface](https://mccgroup.in/blog/anatomy-of-a-road/): A road is a stack of layers, each with a job. This article explains the layers from natural ground to the wearing surface and why each one matters.
+- [Canal lining explained](https://mccgroup.in/blog/canal-lining-explained/): What canal lining is, why canals are lined, how the work is done, and what makes a lining last.
+- [PEB or conventional construction: how to choose](https://mccgroup.in/blog/peb-vs-conventional-construction/): A plain comparison of pre-engineered steel buildings and conventional RCC construction: speed, span, flexibility, and when each one fits.
+- [Why timeline control decides project cost](https://mccgroup.in/blog/timeline-control-and-project-cost/): How delays raise the cost of a civil project, and how planning manpower and machinery together keeps a project on schedule and viable.
+- [Quality checks in road construction: what gets tested](https://mccgroup.in/blog/quality-checks-in-road-construction/): The checks that protect a road's quality: materials, levels, compaction, and finish. A client's guide to what to ask for on site.
+- [Storm drain planning in layouts: what to get right](https://mccgroup.in/blog/storm-drain-planning-in-layouts/): Why storm drains matter in residential and commercial layouts, and the points to settle during planning so water leaves the site safely.
+- [Planning rock excavation and cuttings](https://mccgroup.in/blog/planning-rock-excavation-and-cuttings/): Road, canal and building sites often have to cut through rock. This explainer covers how rock excavation is planned, sequenced and kept orderly.
+- [Concrete curing basics: why the first days matter](https://mccgroup.in/blog/concrete-curing-basics/): Concrete gains strength by reacting with water, so what happens after placing is as important as the mix. A plain explanation of curing.
+- [Monsoon planning for civil sites](https://mccgroup.in/blog/monsoon-planning-for-civil-sites/): Heavy rain stops work and damages unfinished structures. How civil projects plan their schedule, drainage, materials and access around the monsoon.
+- [Bridge construction stages explained](https://mccgroup.in/blog/bridge-construction-stages/): From foundation to deck: the main stages of building a bridge, in plain language, and why each depends on the one before.
+- [How to choose a civil contractor: questions to ask](https://mccgroup.in/blog/how-to-choose-a-civil-contractor/): A practical checklist for government departments and private clients choosing a contractor for roads, buildings or water works.
+- [Equipment planning on infrastructure sites](https://mccgroup.in/blog/equipment-planning-on-infrastructure-sites/): Why the right mix of excavators, rollers, mixers and trucks, in the right quantity at the right time, decides both speed and cost.
 
 ## Languages
 - English: https://mccgroup.in/

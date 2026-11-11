@@ -54,7 +54,7 @@ C = {
         "message_hint": "Where is the site, what do you want built, and when do you want to start?",
         "send": "Send enquiry",
         "note": "We use your details only to reply to this enquiry.",
-        "error": "The enquiry could not be sent. Please call 0712-4210767 or email msh@mccgroup.in.",
+        "error": "The enquiry could not be sent. Please call 0712-4210767 or email info@mccgroup.in.",
     },
     "thanks": {
         "title": "Thank you. We have your enquiry.",
@@ -144,7 +144,7 @@ C = {
             ("How large is the MCC Group team?", "More than 120 people."),
             ("Does MCC Group build PEB structures?", "Yes. MCC Group builds PEB structures and PEB sheds."),
             ("When was MCC Group founded?", "MCC Group was founded in 1984."),
-            ("How do I discuss a project with MCC Group?", "Call 0712-4210767, message 90497 70088 on WhatsApp, or email msh@mccgroup.in. You can also use the enquiry form on the contact page."),
+            ("How do I discuss a project with MCC Group?", "Call 0712-4210767, message 90497 70088 on WhatsApp, or email info@mccgroup.in. You can also use the enquiry form on the contact page."),
         ],
         "steel_link": "Read: PEB or conventional construction?",
         "water_link": "Read: Storm drain planning in layouts",
