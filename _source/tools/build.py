@@ -3,7 +3,7 @@
 Run:  python3 tools/build.py          (all languages)
       LANGS=en python3 tools/build.py  (subset, for development)
 """
-import html, importlib, json, os, shutil, sys
+import html, importlib, json, os, re, shutil, sys
 sys.path.insert(0, os.path.dirname(__file__))
 import site_config as S
 
@@ -142,7 +142,7 @@ def footer(C, lang):
     return f"""</main>
 <footer class="site-foot"><div class="wrap">
 <div class="foot-grid">
-<div class="foot-brand"><img src="/assets/logo.webp" width="{IMG['_logo']['w']}" height="{IMG['_logo']['h']}" alt="MCC Group" loading="lazy"><p>{esc(C['home']['who'].split('. ')[0])}.</p></div>
+<div class="foot-brand"><img src="/assets/logo.webp" width="{IMG['_logo']['w']}" height="{IMG['_logo']['h']}" alt="MCC Group" loading="lazy"><p>{esc(re.split(r'(?<=[.।])\s', C['home']['who'])[0])}</p></div>
 <nav aria-label="{q(C['ui']['explore'])}"><h2>{esc(C['ui']['explore'])}</h2><ul>{pages}</ul></nav>
 <div><h2>{esc(C['ui']['group_companies'])}</h2><ul>{cos}</ul></div>
 <div><h2>{esc(C['ui']['contact'])}</h2>
