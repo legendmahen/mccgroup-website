@@ -306,3 +306,26 @@ form.enq{display:grid;gap:1.2rem}
 
 .center-page{min-height:60vh;display:flex;align-items:center}
 @media print{.site-head,.actbar,.wa-float,.site-foot nav{display:none}}
+
+.topbar{background:var(--navy);color:#c5d1da;font-size:.85rem}.topbar .wrap{display:flex;justify-content:space-between;gap:1rem;padding-block:.5rem;flex-wrap:wrap}.topbar a{color:#fff;text-decoration:none}.topbar a:hover{text-decoration:underline}.tb-links{display:flex;gap:1.4rem;flex-wrap:wrap}@media (max-width:48rem){.topbar{display:none}}
+
+/* Hero carousel */
+.hero-slider{height:clamp(34rem,86vh,48rem);overflow:hidden}
+.hero-slider::after{display:none}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .9s ease,visibility .9s;isolation:isolate;background:var(--navy)}
+.slide.is-active,.no-js .slide:first-child{opacity:1;visibility:visible}
+.slide::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,20,31,.93) 0%,rgba(8,20,31,.78) 40%,rgba(8,20,31,.25) 100%)}
+@media (max-width:48rem){.slide::after{background:linear-gradient(180deg,rgba(8,20,31,.78) 0%,rgba(8,20,31,.92) 100%)}}
+.slide .hero-in{height:100%;min-height:0;padding-bottom:5rem}
+.slide-h{color:#fff;font-size:clamp(2.4rem,6vw,4.6rem);font-weight:600;line-height:1.1;letter-spacing:-.022em;margin:0;max-width:16ch}
+.hero-ctrl{position:absolute;left:0;right:0;bottom:1.4rem;display:flex;align-items:center;gap:1rem;padding-inline:var(--gut);max-width:calc(var(--max) + 2*var(--gut));margin-inline:auto;z-index:3}
+.hero-ctrl>button{width:2.6rem;height:2.6rem;border:1px solid rgba(255,255,255,.55);background:rgba(8,20,31,.4);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer}
+.hero-ctrl>button:hover{background:var(--brass);color:#0b1c2a;border-color:var(--brass)}
+.dots{display:flex;gap:.55rem}.dots button{width:2.2rem;height:.28rem;padding:0;border:0;background:rgba(255,255,255,.4);cursor:pointer}.dots button[aria-current]{background:var(--brass)}
+.no-js .hero-ctrl{display:none}
+@media (prefers-reduced-motion:reduce){.slide{transition:none}}
+/* Dark figures band */
+.figures{background:var(--navy);border-bottom:0}
+.fig-grid li{border-color:rgba(255,255,255,.16)}
+.fig-grid b{color:var(--brass-l,#e4bc63)}.fig-grid span{color:#c5d1da}
+@media (max-width:47.99rem){.fig-grid li:nth-child(n+3){border-color:rgba(255,255,255,.16)}}

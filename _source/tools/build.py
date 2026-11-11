@@ -158,6 +158,7 @@ def header(C, lang, key, path_for_alt):
     langs = "".join(f'<a href="{path_for_alt(l)}" lang="{l}" hreflang="{S.HREFLANG[l]}"{" aria-current=\"true\"" if l == lang else ""}>{LC[l]["short"] if l == "en" else LC[l]["label"]}</a>' for l in S.LANGS)
     return f"""<body>
 <a class="skip" href="#main">{esc(C['ui']['skip'])}</a>
+<div class="topbar"><div class="wrap"><span>{esc(S.ADDRESS['city'])}, Maharashtra &middot; {esc(C['ui']['hours'])}</span><span class="tb-links"><a href="tel:{S.PHONE_OFFICE['tel']}">{S.PHONE_OFFICE['display']}</a><a href="tel:{S.PHONE_MOBILE['tel']}">{S.PHONE_MOBILE['display']}</a><a href="mailto:{S.EMAIL_ENQUIRY}">{S.EMAIL_ENQUIRY}</a></span></div></div>
 <header class="site-head"><div class="wrap head-in">
 <a class="brand" href="{url(lang, 'home')}" aria-label="MCC Group, {esc(C['ui']['home'])}"><img src="/assets/logo.webp" width="{IMG['_logo']['w']}" height="{IMG['_logo']['h']}" alt="MCC Group"></a>
 <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">{esc(C['ui']['menu'])}</button>
@@ -265,9 +266,20 @@ def page_home(C, lang):
     alt = alt_fn("home")
     out = head(C, lang, "home", C["meta"]["home"][0], C["meta"]["home"][1], alt) + header(C, lang, "home", alt)
     figs = "".join(f"<li><b>{esc(a)}</b><span>{esc(b)}</span></li>" for a, b in H["figures"])
-    out += f"""<section class="hero"><div class="hero-bg">{picture('canal-lining-1', C['photos']['canal-lining-1'], '100vw', eager=True)}</div>
-<div class="wrap hero-in"><h1>{esc(H['h1'])}</h1><p class="hero-sub">{esc(H['sub'])}</p>
-<div class="btns"><a class="btn btn-gold" href="{url(lang, 'contact')}">{esc(C['ui']['enquire'])}</a><a class="btn btn-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg('#0f7d43')}{esc(C['ui']['chat_wa'])}</a><a class="btn btn-line" href="{url(lang, 'work')}">{esc(C['ui']['see_work'])}</a></div></div></section>
+    slides = [("canal-lining-1", None)] + [("road-2", C["groups"][0]), ("canal-lining-2", C["groups"][1]), ("market-2", C["groups"][2])]
+    sl = ""
+    for i, (img, g) in enumerate(slides):
+        if g is None:
+            body = (f'<h1>{esc(H["h1"])}</h1><p class="hero-sub">{esc(H["sub"])}</p>'
+                    f'<div class="btns"><a class="btn btn-gold" href="{url(lang, "contact")}">{esc(C["ui"]["enquire"])}</a><a class="btn btn-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg("#0f7d43")}{esc(C["ui"]["chat_wa"])}</a><a class="btn btn-line" href="{url(lang, "work")}">{esc(C["ui"]["see_work"])}</a></div>')
+        else:
+            body = (f'<p class="slide-h">{esc(g["name"])}</p><p class="hero-sub">{esc(g["text"])}</p>'
+                    f'<div class="btns"><a class="btn btn-gold" href="{url(lang, "capabilities")}#{g["id"]}">{esc(C["ui"]["learn_more"])}</a><a class="btn btn-wa" href="{wa_link(C)}" target="_blank" rel="noopener">{wa_svg("#0f7d43")}{esc(C["ui"]["chat_wa"])}</a></div>')
+        sl += (f'<div class="slide{" is-active" if i == 0 else ""}" role="group" aria-roledescription="slide" aria-label="{i+1} / {len(slides)}"><div class="hero-bg">{picture(img, C["photos"][img], "100vw", eager=(i == 0))}</div>'
+               f'<div class="wrap hero-in">{body}</div></div>')
+    dots = "".join(f'<button type="button" aria-label="{i+1}"{" aria-current=\"true\"" if i == 0 else ""}></button>' for i in range(len(slides)))
+    out += f"""<section class="hero hero-slider" aria-roledescription="carousel" aria-label="MCC Group">{sl}
+<div class="wrap"><div class="hero-ctrl"><button type="button" data-slide-prev aria-label="{q(C['ui']['prev'])}">&lsaquo;</button><div class="dots">{dots}</div><button type="button" data-slide-next aria-label="{q(C['ui']['next'])}">&rsaquo;</button></div></div></section>
 <section class="figures"><div class="wrap"><ul class="fig-grid" aria-label="{q(C['ui']['figures'])}">{figs}</ul></div></section>
 <section><div class="wrap split"><div><div class="mark"></div><h2>{esc(H['who_title'])}</h2><p class="lede">{esc(H['who'])}</p><p><a class="tlink" href="{url(lang, 'about')}">{esc(C['nav']['about'])}</a></p></div>
 <div class="split-img">{picture('rock-cut-1', C['photos']['rock-cut-1'], '(min-width:56rem) 40vw, 100vw')}</div></div></section>
