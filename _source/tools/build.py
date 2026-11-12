@@ -100,6 +100,13 @@ def head(C, lang, key, title, desc, path_for_alt, extra_ld=(), og_type="website"
     return f"""<!doctype html>
 <html lang="{lang}" class="no-js">
 <head>
+<!-- Google Tag Manager -->
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-WBHLB94K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){{dataLayer.push(arguments);}}
+  gtag('js', new Date());
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title>
